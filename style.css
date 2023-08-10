@@ -25,15 +25,45 @@ h1 {
 }
 
 .event-title {
-  color: #ffffff
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 8px;
 }
-
 .event img {
   height: 150px;
 }
 
+.event-price {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #007bff;
+}
+
+.principaleImage{
+  height: 600px;
+  width: 1920px;
+}
+
 #ticketType {
   width: 100%;
+}
+
+.ticket-menu{
+  width: 20px;
+  height: 20px;
+  background-color: #339dff;
+}
+
+
+.ticket-menu:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.25);
+}
+
+.ticket-menu option {
+  background-color: #ffffff;
+  color: #333;
 }
 
 .actions {
@@ -52,6 +82,11 @@ h1 {
 
 .link-item {
   color: #ffffff
+}
+
+.event-description {
+  font-size: 0.9rem;
+  margin-top: 10px;
 }
 
 .logo {
@@ -84,29 +119,36 @@ body {
   opacity: 0.9;
 }
 
-.card {
-  background-color: #000000;
+.event-card {
+  height: 250px;
+  width: 600px;
   display: flex;
-  align-items: flex-start;
-  padding: 16px;
+  border: 1px solid #0084ff;
+  border-radius: 10px;
+  padding: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(1, 204, 255, 0.959);
 }
 
 .image-container {
-  background-color: #000000;
-  width: 200px;
-  height: 150px;
-  margin-right: 16px;
-  overflow: hidden;
+  flex: 1;
+  display: flex;
+  padding: 10px; /* Redu padding-ul pentru a încadra mai bine imaginea */
 }
-.image-container img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  box-shadow: 0 0 4px rgb(247, 247, 247), 0.4);
+
+.event-image {
+  width: 100%; /* Ajustează lățimea imaginii pentru a se potrivi în container */
+  border-radius: 8px;
 }
+
 .event-info {
-  flex-grow: 1;
+  flex: 2;
+  padding: 1px;
+  flex-direction: column;
+  justify-content: space-between;
 }
+
 .event-info h2 {
   color: #ffffff;
   font-size: 20px;
@@ -119,8 +161,36 @@ body {
 .buy-button {
   margin-top: 8px;
   background-color: #1a1a1a;
+  box-shadow: 0 4px 4px rgba(1, 168, 245, 0.959);
   color: #90D2FF;
   border: none;
   padding: 4px 8px;
   cursor: pointer;
+}
+.buy-single {
+  margin-top: 0; /* Reduce spațiul de la butonul "Buy Tickets" când există doar o categorie de bilete */
+}
+
+.search-input {
+  padding: 10px;
+  width: 100%;
+  border: 1px solid #0385ff;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #080808;
+  transition: border-color 0.3s ease-in-out;
+  box-shadow: 0 0 4px rgb(24, 136, 255);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #007bff; /* Schimbați la culoarea preferată pentru focus */
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.25); /* Opțional: efect de umbrire */
+}
+
+.search-input::placeholder {
+  color: #2395ff; /* Schimbați la culoarea dorită pentru textul de tip placeholder */
+}
+.search-input:not(:placeholder-shown) {
+  color: #ffffff;
 }
