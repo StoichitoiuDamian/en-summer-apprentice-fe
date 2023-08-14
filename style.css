@@ -1,8 +1,8 @@
 body {
   font-family: 'Roboto', sans-serif;
-  background-color: #000000; /* Culoarea neagră */
-  margin: 0; /* Resetăm margin pentru întregul corp al paginii */
-  padding: 0; /* Resetăm padding pentru întregul corp al paginii */
+  background-color: #000000; 
+  margin: 0; 
+  padding: 0;
 }
 
 .events {
@@ -149,11 +149,11 @@ body {
 .image-container {
   flex: 1;
   display: flex;
-  padding: 10px; /* Redu padding-ul pentru a încadra mai bine imaginea */
+  padding: 10px; 
 }
 
 .event-image {
-  width: 100%; /* Ajustează lățimea imaginii pentru a se potrivi în container */
+  width: 100%;
   border-radius: 8px;
 }
 
@@ -183,7 +183,7 @@ body {
   cursor: pointer;
 }
 .buy-single {
-  margin-top: 0; /* Reduce spațiul de la butonul "Buy Tickets" când există doar o categorie de bilete */
+  margin-top: 0; 
 }
 
 .search-input {
@@ -197,15 +197,98 @@ body {
   box-shadow: 0 0 4px rgb(24, 136, 255);
 }
 
+.ticketType{
+  color: #00d9ff;
+  background-color: #00d9ff;
+}
+
 .search-input:focus {
   outline: none;
-  border-color: #007bff; /* Schimbați la culoarea preferată pentru focus */
-  box-shadow: 0 0 4px rgba(0, 123, 255, 0.25); /* Opțional: efect de umbrire */
+  border-color: #007bff; 
+  box-shadow: 0 0 4px rgba(0, 123, 255, 0.25); 
 }
 
 .search-input::placeholder {
-  color: #2395ff; /* Schimbați la culoarea dorită pentru textul de tip placeholder */
+  color: #2395ff;
 }
 .search-input:not(:placeholder-shown) {
   color: #ffffff;
+}
+
+.order {
+  width: 1800px;
+  border: 1px solid #0084ff;
+  box-shadow: 0 4px 4px rgba(1, 204, 255, 0.959);
+  padding: 10px;
+  margin-bottom: 20px;
+  background-color: #000000;
+  color: #ffffff;
+}
+.order-card{
+  background-color: #000000;
+  margin: 0.5rem 0;
+  font-size: 14px;
+}
+
+.delete-order-button{
+  margin-top: 8px;
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 4px rgba(1, 168, 245, 0.959);
+  color: #90D2FF;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.update-order-button{
+  margin-top: 8px;
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 4px rgba(1, 168, 245, 0.959);
+  color: #90D2FF;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+#update-order-form label {
+  font-size: 14px; 
+  
+  display: block; 
+  margin-top: 0.5rem; 
+  color: white;
+}
+
+#update-order-form input {
+  width: 20%; 
+  padding: 0.3rem; 
+  font-size: 14px; 
+  margin-top: 0.3rem;
+}
+
+#update-order-form button {
+  margin-top: 1rem; 
+  padding: 0.5rem 1rem; 
+  font-size: 14px; 
+}
+
+.forSearchButton {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  background-color: #1a1a1a;
+  box-shadow: 0 4px 4px rgba(1, 168, 245, 0.959);
+  color: #90D2FF;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 10vh; /* Înălțimea paginii întregi */
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
 }

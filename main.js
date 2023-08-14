@@ -1,14 +1,23 @@
+import toastr from 'toastr';
 
 // Navigate to a specific URL
 function navigateTo(url) {
   history.pushState(null, null, url);
   renderContent(url);
 }
+
+
 // HTML templates
 function getHomePageTemplate() {
   return `
    <div id="content" >
-      <img class = "principaleImage" src="./src/assets/partyv2.png" alt="summer">
+      <img class="principaleImage" src="./src/assets/partyv2.png" alt="summer">
+      <div class="search-container">
+        <div class="search-bar">
+          <input type="text" id="searchInput" placeholder="Search event or location">
+          <button id="searchButton" class="forSearchButton">Search</button>
+        </div>
+      </div>
       <div class="events flex items-center justify-center flex-wrap">
       </div>
     </div>
@@ -18,7 +27,9 @@ function getHomePageTemplate() {
 function getOrdersPageTemplate() {
   return `
     <div id="content">
-    <h1 class="text-2xl mb-4 mt-8 text-center">Purchased Tickets</h1>
+      <h1 class="text-2xl mb-4 mt-8 text-center">Purchased Tickets</h1>
+      <div class="orders-container">
+      </div>
     </div>
   `;
 }
@@ -55,6 +66,26 @@ function setupPopstateEvent() {
 function setupInitialPage() {
   const initialUrl = window.location.pathname;
   renderContent(initialUrl);
+  const searchButton = document.getElementById('searchButton');
+  searchButton.addEventListener('click', () => {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    performCombinedSearch(searchInput);
+  });
+}
+
+async function performCombinedSearch(searchTerm) {
+  const eventData = await fetchEvents();
+  const filteredEvents = eventData.filter(
+    event => event.eventName.toLowerCase().includes(searchTerm) || event.venueLocation.toLowerCase().includes(searchTerm)
+  );
+
+  const eventsContainer = document.querySelector('.events');
+  eventsContainer.innerHTML = '';
+
+  filteredEvents.forEach(event => {
+    const eventCard = createEventCard(event);
+    eventsContainer.appendChild(eventCard);
+  });
 }
 
 function handleOrderResponse(success) {
@@ -65,12 +96,12 @@ function handleOrderResponse(success) {
   }
 }
 
-async function createOrder(customerId, categoryId, numberOfTickets,totalPrice,orderedAt) {
+async function createOrder(customerId, categoryId, numberOfTickets,totalPrice) {
   const data = {
     ticketCategory: categoryId,                
     numberOfTickets: numberOfTickets,
     totalPrice:totalPrice * numberOfTickets,
-    orderedAt: new Date()
+    orderedAt : new Date()
   };
 
   try {
@@ -139,10 +170,10 @@ function createEventCard(event) {
         <p class="event-date">${formattedStartDate} - ${formattedEndDate}</p>
         <p class="event-price">$${ticketMarkup}</p>
         <p class="event-description">${descriptionCategoryMarkup}</p>
+        <p class="venue-location">${event.venueLocation}</p> <!-- Adaugă venueLocation -->
         ${
           !isSingleTicket
             ? `
-            <label for="ticketType">Select Ticket Type:</label>
             <select id="ticketType" class="ticket-type">
             ${event.ticketCategories.map(category => `<option value="${category.ticketCategoryID}">${category.descriptionTicketCategory}</option>`).join('')}
             </select>
@@ -182,19 +213,30 @@ async function renderHomePage() {
     eventsContainer.appendChild(eventCard);
   });
 
+  const searchButton = document.getElementById('searchButton');
+  searchButton.addEventListener('click', () => {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const filteredEvents = eventData.filter(event => event.eventName.toLowerCase().includes(searchInput));
+    eventsContainer.innerHTML = '';
+    filteredEvents.forEach(event => {
+      const eventCard = createEventCard(event);
+      eventsContainer.appendChild(eventCard);
+    });
+  });
+
   const buyButtons = document.querySelectorAll('.buy-button');
   console.log(buyButtons);
   buyButtons.forEach(button => {
     button.addEventListener('click', async () => {
       console.log('Button clicked!');
-      const eventId = button.getAttribute('data-event-id');
+      const eventId = parseInt(button.dataset.eventId);
       const categoryId = button.getAttribute('data-category-id');
       const ticketQuantityInput = button.parentElement.querySelector('.ticket-quantity');
       const numberOfTickets = parseInt(ticketQuantityInput.value);
     
-      // Aici adăugați codul pentru a obține selectedCategoryId
+    
       const ticketTypeSelect = button.parentElement.querySelector('.ticket-type');
-      const selectedCategoryId = ticketTypeSelect.value;
+      const selectedCategoryId = parseInt(ticketTypeSelect.value);
   
       console.log('eventId:', eventId);
       console.log('categoryId:', categoryId);
@@ -216,6 +258,7 @@ async function renderHomePage() {
         
       const numberOfPrice = selectedCategory.price;
       const customerId = 1;
+
   
       console.log('Buy button clicked. Sending POST request...');
       const success = await createOrder(customerId, categoryId, numberOfTickets, numberOfPrice);
@@ -230,9 +273,138 @@ async function renderHomePage() {
 }
 
 
-function renderOrdersPage(categories) {
+async function renderOrdersPage() {
   const mainContentDiv = document.querySelector('.main-content-component');
   mainContentDiv.innerHTML = getOrdersPageTemplate();
+
+  const customerId = 1; // Setează ID-ul clientului
+  
+  try {
+    const response = await fetch(`http://localhost:8080/ordersDto/${customerId}/details`);
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const ordersData = await response.json();
+
+    const ordersContainer = document.querySelector('.orders-container');
+    ordersData.forEach(order => {
+      const orderElement = createOrderElement(order);
+      ordersContainer.appendChild(orderElement);
+
+      // Adaugă evenimentul de clic pentru butonul de ștergere
+      const deleteButton = orderElement.querySelector('.delete-order-button');
+      deleteButton.addEventListener('click', async () => {
+        const orderId = parseInt(deleteButton.getAttribute('data-order-id'));
+        const deleteResponse = await deleteOrder(orderId);
+        if (deleteResponse) {
+          ordersContainer.removeChild(orderElement);
+        }
+      });
+
+      // Adaugă evenimentul de clic pentru butonul de actualizare
+      const updateButton = orderElement.querySelector('.update-order-button');
+      updateButton.addEventListener('click', () => {
+        showUpdateForm(order);
+      });
+    });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+  }
+}
+
+function showUpdateForm(order) {
+  const formMarkup = `
+    <form id="update-order-form">
+      <label for="ticketCategory">Ticket Category:</label>
+      <input type="text" id="ticketCategory" value="${order.ticketCategory}" required>
+      <label for="numberOfTickets">Number of Tickets:</label>
+      <input type="number" id="numberOfTickets" value="${order.numberOfTickets}" required>
+      <label for="totalPrice">Total Price:</label>
+      <input type="number" id="totalPrice" value="${order.totalPrice}" required>
+      <button type="submit">Update Order</button>
+    </form>
+  `;
+
+  const formContainer = document.querySelector('#content');
+  formContainer.innerHTML = formMarkup;
+
+  const updateForm = document.querySelector('#update-order-form');
+  updateForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const updatedOrder = {
+      orderID: order.orderID,
+      ticketCategory: updateForm.querySelector('#ticketCategory').value,
+      numberOfTickets: parseInt(updateForm.querySelector('#numberOfTickets').value),
+      totalPrice: parseFloat(updateForm.querySelector('#totalPrice').value)
+    };
+
+    const success = await updateOrder(updatedOrder);
+    if (success) {
+      renderOrdersPage();
+    }
+  });
+}
+
+async function updateOrder(updatedOrder) {
+  try {
+    const response = await fetch(`http://localhost:8080/OrderUpdate/${updatedOrder.orderID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updatedOrder)
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    console.log('Order updated successfully.');
+    return true;
+  } catch (error) {
+    console.error('Error updating order:', error);
+    return false;
+  }
+}
+
+async function deleteOrder(orderId) {
+  try {
+    const response = await fetch(`http://localhost:8080/deleteOrderById/${orderId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    console.log('Order deleted successfully.');
+    return true;
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    return false;
+  }
+}
+
+function createOrderElement(order) {
+  const orderElement = document.createElement('div');
+  orderElement.classList.add('order');
+
+  const formattedDate = new Date(order.orderedAT).toLocaleString();
+
+  const contentMarkup = `
+    <div class="order-card">
+      <p>Order ID: ${order.orderID}</p>
+      <p>Date: ${formattedDate}</p>
+      <p>Ticket Category: ${order.ticketCategory}</p>
+      <p>Number of Tickets: ${order.numberOfTickets}</p>
+      <p>Total Price: $${order.totalPrice}</p>
+      <button class="delete-order-button" data-order-id="${order.orderID}">Delete</button>
+      <button class="update-order-button" data-order-id="${order.orderID}">Update</button>
+    </div>
+  `;
+
+  orderElement.innerHTML = contentMarkup;
+  return orderElement;
 }
 
 // Render content based on URL
@@ -243,7 +415,7 @@ function renderContent(url) {
   if (url === '/') {
     renderHomePage();
   } else if (url === '/orders') {
-    renderOrdersPage()
+    renderOrdersPage();
   }
 }
 
