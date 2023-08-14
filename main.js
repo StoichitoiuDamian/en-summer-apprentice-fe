@@ -55,16 +55,44 @@ function setupPopstateEvent() {
 function setupInitialPage() {
   const initialUrl = window.location.pathname;
   renderContent(initialUrl);
+}
 
-  const buyButtons = document.querySelectorAll('.buy-button');
-  buyButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const selectMenu = button.parentElement.querySelector('.select-menu');
-      if (selectMenu) {
-        selectMenu.style.display = selectMenu.style.display === 'block' ? 'none' : 'block';
-      }
+function handleOrderResponse(success) {
+  if (success) {
+    console.log('Order was successful.');
+  } else {
+    console.log('Order failed.');
+  }
+}
+
+async function createOrder(customerId, categoryId, numberOfTickets,totalPrice,orderedAt) {
+  const data = {
+    ticketCategory: categoryId,                
+    numberOfTickets: numberOfTickets,
+    totalPrice:totalPrice * numberOfTickets,
+    orderedAt: new Date()
+  };
+
+  try {
+    console.log('Sending POST request...');
+    const response = await fetch(`http://localhost:8080/orders/${customerId}`, {  
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
     });
-  });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    console.log('POST request successful.');
+    return true;
+  } catch (error) {
+    console.error('Error making POST request:', error);
+    return false;
+  }
 }
 //primul request de GETALLEVENTS
 
@@ -76,6 +104,7 @@ async function fetchEvents() {
     }
     const eventData = await response.json();
 
+    console.log(eventData);
    
     eventData.forEach((event, index) => {
       event.img = `./src/assets/event_${index + 1}.png`;
@@ -114,18 +143,28 @@ function createEventCard(event) {
           !isSingleTicket
             ? `
             <label for="ticketType">Select Ticket Type:</label>
-            <select id="ticketType" class="ticket-menu">
-              ${event.ticketCategories.map(category => `<option value="${category.id}">${category.descriptionTicketCategory}</option>`).join('')}
+            <select id="ticketType" class="ticket-type">
+            ${event.ticketCategories.map(category => `<option value="${category.ticketCategoryID}">${category.descriptionTicketCategory}</option>`).join('')}
             </select>
             `
             : ''
         }
-        <button class="buy-button ${isSingleTicket ? 'buy-single' : ''}">Buy Tickets</button>
+        <div class="label-and-input">
+          <label for="ticketQuantity">Number of Tickets:</label>
+          <input type="number" id="ticketQuantity" class="ticket-quantity" min="1" value="1">
+        </div>
+        <button class="buy-button ${isSingleTicket ? 'buy-single' : ''}" 
+        data-event-id="${event.eventID}"
+        total-price="${event.ticketCategories[0].price}"
+        data-category-id="${event.ticketCategories[0].ticketCategoryID}">Buy Tickets
+        </button>
       </div>
     </div>
   `;
 
   eventCard.innerHTML = contentMarkup;
+
+  console.log(eventCard);
   return eventCard;
 }
 
@@ -141,6 +180,52 @@ async function renderHomePage() {
   eventData.forEach(event => {
     const eventCard = createEventCard(event);
     eventsContainer.appendChild(eventCard);
+  });
+
+  const buyButtons = document.querySelectorAll('.buy-button');
+  console.log(buyButtons);
+  buyButtons.forEach(button => {
+    button.addEventListener('click', async () => {
+      console.log('Button clicked!');
+      const eventId = button.getAttribute('data-event-id');
+      const categoryId = button.getAttribute('data-category-id');
+      const ticketQuantityInput = button.parentElement.querySelector('.ticket-quantity');
+      const numberOfTickets = parseInt(ticketQuantityInput.value);
+    
+      // Aici adăugați codul pentru a obține selectedCategoryId
+      const ticketTypeSelect = button.parentElement.querySelector('.ticket-type');
+      const selectedCategoryId = ticketTypeSelect.value;
+  
+      console.log('eventId:', eventId);
+      console.log('categoryId:', categoryId);
+      console.log('selectedCategoryId:', selectedCategoryId);
+  
+      const selectedEvent = eventData.find(event => event.eventID === eventId);
+      console.log('selectedEvent:', selectedEvent);
+      if (!selectedEvent) {
+        console.error('Selected event not found.');
+        return;
+      }
+        
+      const selectedCategory = selectedEvent.ticketCategories.find(category => category.ticketCategoryID === selectedCategoryId);
+      console.log('selectedCategory:', selectedCategory);
+      if (!selectedCategory) {
+        console.error('Selected category not found.');
+        return;
+      }
+        
+      const numberOfPrice = selectedCategory.price;
+      const customerId = 1;
+  
+      console.log('Buy button clicked. Sending POST request...');
+      const success = await createOrder(customerId, categoryId, numberOfTickets, numberOfPrice);
+      handleOrderResponse(success);
+  
+      const selectMenu = button.parentElement.querySelector('.select-menu');
+      if (selectMenu) {
+        selectMenu.style.display = selectMenu.style.display === 'block' ? 'none' : 'block';
+      }
+    });
   });
 }
 
